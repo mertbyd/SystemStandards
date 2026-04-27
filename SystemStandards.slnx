@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/SystemStandards.AspNetCore/">
+    <Project Path="src/SystemStandards.AspNetCore/SystemStandards.AspNetCore/SystemStandards.AspNetCore.csproj" />
+  </Folder>
+  <Folder Name="/src/SystemStandards.Core/">
+    <Project Path="src/SystemStandards.Core/SystemStandards.Core/SystemStandards.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/SystemStandards.Validation/">
+    <Project Path="src/SystemStandards.Validation/SystemStandards.Validation/SystemStandards.Validation.csproj" />
+  </Folder>
+  <Folder Name="/src/SystemStandards.Abp/">
+    <Project Path="src/SystemStandards.Abp/SystemStandards.Abp/SystemStandards.Abp.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/SystemStandards.Core.Tests/SystemStandards.Core.Tests.csproj" />
+    <Project Path="test/SystemStandards.AspNetCore.Tests/SystemStandards.AspNetCore.Tests.csproj" />
+    <Project Path="test/SystemStandards.Validation.Tests/SystemStandards.Validation.Tests.csproj" />
+    <Project Path="test/SystemStandards.Abp.Tests/SystemStandards.Abp.Tests.csproj" />
+  </Folder>
+</Solution>

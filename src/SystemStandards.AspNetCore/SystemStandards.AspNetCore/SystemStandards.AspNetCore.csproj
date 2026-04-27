@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PackageId>SystemStandards.AspNetCore</PackageId>
+    <Title>System Standards - ASP.NET Core Integration</Title>
+    <Version>2.0.0</Version>
+    <Authors>Mert Bayd</Authors>
+    <Description>ASP.NET Core middleware, filters, and conventions for the SystemStandards Result pattern. ProblemDetails, TranslateResultToActionResult, OperationContext.</Description>
+    <PackageTags>result;aspnetcore;middleware;problemdetails;validation</PackageTags>
+    <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Logging -->
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.0" />
+
+    <!-- Project References -->
+    <ProjectReference Include="..\..\SystemStandards.Core\SystemStandards.Core\SystemStandards.Core.csproj" />
+  </ItemGroup>
+
+</Project>

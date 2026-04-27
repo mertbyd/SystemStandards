@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version)",
+      "Bash(python3 -c \"import graphify; print\\('graphify OK'\\)\")",
+      "Bash(python3 -m pip install graphifyy)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(python3 -m graphify . --wiki)",
+      "Bash(python3 -m graphify --help)",
+      "Bash(python3 -m graphify update .)",
+      "Bash(xargs grep *)",
+      "Bash(dotnet build *)",
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(dotnet ef *)",
+      "Bash(grep -E \"\\\\.\\(cs|json\\)$\")",
+      "Read(//c/Users/mertb/OneDrive/Belgeler/InventoryWiki/wiki/**)",
+      "Read(//c/Users/mertb/OneDrive/Belgeler/InventoryWiki/raw/**)",
+      "Read(//c/Users/mertb/OneDrive/Belgeler/InventoryWiki/**)",
+      "Bash(where abp *)",
+      "Bash(abp --version)",
+      "Bash(abp install-libs *)",
+      "Bash(cp -r \"C:/Users/mertb/RiderProjects/InventoryTrackingAutomation/host/InventoryTrackingAutomation.AuthServer/package.json\" \"C:/Users/mertb/RiderProjects/InventoryTrackingAutomation/host/InventoryTrackingAutomation.HttpApi.Host/package.json\")",
+      "Bash(cp -r \"C:/Users/mertb/RiderProjects/InventoryTrackingAutomation/host/InventoryTrackingAutomation.AuthServer/abp.resourcemapping.js\" \"C:/Users/mertb/RiderProjects/InventoryTrackingAutomation/host/InventoryTrackingAutomation.HttpApi.Host/abp.resourcemapping.js\")",
+      "Bash(gh api *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

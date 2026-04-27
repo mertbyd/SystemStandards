@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PackageId>SystemStandards.Validation</PackageId>
+    <Title>System Standards - Validation Extensions</Title>
+    <Version>2.0.0</Version>
+    <Authors>Mert Bayd</Authors>
+    <Description>FluentValidation integration for the SystemStandards Result pattern. Localized validation messages via IValidationMessageProvider.</Description>
+    <PackageTags>result;ardalis;abp;aspnetcore;validation;fluentvalidation</PackageTags>
+    <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- FluentValidation -->
+    <PackageReference Include="FluentValidation" Version="11.9.2" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
+
+    <!-- Microsoft Extensions -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+
+    <!-- Project References -->
+    <ProjectReference Include="..\..\SystemStandards.Core\SystemStandards.Core\SystemStandards.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PackageId>SystemStandards.Abp</PackageId>
+    <Title>System Standards - ABP Framework Integration</Title>
+    <Version>2.0.0</Version>
+    <Authors>Mert Bayd</Authors>
+    <Description>ABP Framework integration for SystemStandards Result pattern. Exception mapping, ABP module, ICurrentUser enrichment, localization via IStringLocalizer.</Description>
+    <PackageTags>result;ardalis;abp;aspnetcore;validation</PackageTags>
+    <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ABP Framework packages -->
+    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="10.3.0" />
+    <PackageReference Include="Volo.Abp.Identity.Domain.Shared" Version="10.3.0" />
+    <PackageReference Include="Volo.Abp.Validation" Version="10.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Project References -->
+    <ProjectReference Include="..\..\SystemStandards.AspNetCore\SystemStandards.AspNetCore\SystemStandards.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\SystemStandards.Validation\SystemStandards.Validation\SystemStandards.Validation.csproj" />
+  </ItemGroup>
+
+</Project>

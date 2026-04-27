@@ -1,0 +1,10 @@
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+nupkg/
+nupkgs/
+**/appsettings.secrets.json
