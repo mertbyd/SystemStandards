@@ -6,7 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **SystemStandards** is a .NET 10.0 library suite implementing a standardized **Result pattern** for consistent operation outcome handling across applications. It's modeled after Ardalis.Result but tailored for Turkish-language development environments.
 
-### Three-Package Structure
+### Package Structure
+
+Suite altı pakete ayrılmıştır: dört paket Result pattern'ini, iki paket authorization
+sarmalayıcısını taşır.
 
 1. **SystemStandards.Core** — Core Result types and status mapping
    - `IResult` interface: contract for all operation results
@@ -21,11 +24,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - Bridges validator output into Result pattern
 
 3. **SystemStandards.AspNetCore** — ASP.NET Core plumbing
-   - `ResultToActionResultFilter`: IAsyncActionFilter that converts `IResult` → HTTP ActionResult (wraps into JSON with correct status code)
-   - `GlobalExceptionMiddleware`: catches unhandled exceptions, converts to Result
+   - `TranslateResultToActionResultAttribute` + `ActionResultExtensions`: converts `IResult` → ActionResult
+   - `ProblemDetailsMiddleware`: unhandled exceptions → RFC 7807
    - `OperationContextMiddleware`: injects correlation ID, user context into ambient state
    - `IOperationContextAccessor`: AsyncLocal accessor for per-request context
    - Service extension methods for easy DI registration
+
+4. **SystemStandards.Abp** — ABP Framework integration
+   - `SystemStandardsAbpModule`: Core + AspNetCore + Validation kayıtlarını tek modülde toplar
+   - `AbpExceptionToResultStatusResolver`: ABP exception türleri → `ResultStatus` (type referansı, string match yok)
+   - `ResultBasedExceptionToErrorInfoConverter`, `AbpValidationMessageProvider`, `AbpOperationContextEnricher`
+
+5. **SystemStandards.Authorization.Contracts** — authorization wire contract, **bağımlılığı yok**
+   - `SelectedContextClaimNames`: `sub`, `client_id`, `scope`, `actor_kind`, `tenant_id`, `organization_unit_id`, `application_scope_id`
+   - `SelectedContextHeaderNames`: privileged reason + correlation id header'ları
+   - `AuthorizationRequestContract`, `AuthorizationDecisionContract`, `AuthorizationResultEnvelopeContract`
+   - `SelectedContextFailureCodes`: `Authenticator.SelectedContext:00001..00012` ve `Authenticator.AuthContext:00001..00010`
+   - `AuthenticatorEndpointPaths`: karar ucunun kararlı yolu
+
+6. **SystemStandards.Abp.Authorization** — drop-in tenant / OU / application scope authorization
+   - `SystemStandardsAbpAuthorizationModule` + `AddAuthenticatorAuthorization(configuration)`
+   - `RequireSelectedContextAttribute` → `SelectedContextRequirement` → `SelectedContextAuthorizationHandler`
+   - `ISelectedContextAccessor` (claim'leri typed okur) + `ISelectedContextAuthorizer` (uzak karar)
+   - `AuthenticatorClientOptions`: `IOptions<T>` + `ValidateOnStart`; eksik `BaseUrl` uygulamayı ayağa kaldırmaz
+
+#### Authorization sarmalayıcısının değişmezi: fail-closed
+
+Token yok, claim eksik/bozuk, 5xx, timeout, DNS/bağlantı hatası, ayrıştırılamayan gövde ve
+`isAllowed = false` — hepsi **reddeder**. Hiçbir hata yolu "izin ver"e düşmez. Claim
+problemlerinde uzak çağrı hiç yapılmaz. Kullanım:
+
+```csharp
+[DependsOn(typeof(SystemStandardsAbpAuthorizationModule))]
+public class MyModule : AbpModule { }
+
+[RequireSelectedContext(MyPermissions.Sources.Manage)]
+public async Task<Result<SpecSourceDto>> Update(...) { }
+```
 
 ### Key Design Principle
 
@@ -90,21 +125,49 @@ SystemStandards/
 │   │       └── Localization/
 │   │           ├── IValidationMessageProvider.cs
 │   │           └── ValidationMessageProvider.cs
-│   └── SystemStandards.AspNetCore/
-│       └── SystemStandards.AspNetCore/
-│           ├── Filters/
-│           │   └── ResultToActionResultFilter.cs
-│           ├── Middleware/
-│           │   ├── GlobalExceptionMiddleware.cs
-│           │   ├── OperationContextMiddleware.cs
-│           │   ├── IOperationContextAccessor.cs
-│           │   └── OperationContextAccessor.cs
-│           └── Extensions/
-│               └── AspNetCoreServiceExtensions.cs
+│   ├── SystemStandards.AspNetCore/
+│   │   └── SystemStandards.AspNetCore/
+│   │       ├── Filters/
+│   │       │   └── TranslateResultToActionResultAttribute.cs
+│   │       ├── Conventions/
+│   │       │   └── ResultConvention.cs
+│   │       ├── Middleware/
+│   │       │   ├── ProblemDetailsMiddleware.cs
+│   │       │   ├── OperationContextMiddleware.cs
+│   │       │   ├── IOperationContextAccessor.cs
+│   │       │   └── OperationContextAccessor.cs
+│   │       └── Extensions/
+│   │           ├── ActionResultExtensions.cs
+│   │           └── AspNetCoreServiceExtensions.cs
+│   ├── SystemStandards.Abp/
+│   │   └── SystemStandards.Abp/
+│   │       ├── SystemStandardsAbpModule.cs
+│   │       ├── ExceptionHandling/
+│   │       ├── Identity/
+│   │       ├── Localization/
+│   │       └── Wrappers/
+│   ├── SystemStandards.Authorization.Contracts/
+│   │   └── SystemStandards.Authorization.Contracts/
+│   │       ├── Claims/SelectedContextClaimNames.cs
+│   │       ├── Headers/SelectedContextHeaderNames.cs
+│   │       ├── Endpoints/AuthenticatorEndpointPaths.cs
+│   │       ├── Contracts/                  # request / decision / result envelope
+│   │       └── FailureCodes/SelectedContextFailureCodes.cs
+│   └── SystemStandards.Abp.Authorization/
+│       └── SystemStandards.Abp.Authorization/
+│           ├── SystemStandardsAbpAuthorizationModule.cs
+│           ├── Options/                    # AuthenticatorClientOptions + validator
+│           ├── Context/                    # ISelectedContextAccessor + HttpContext impl
+│           ├── Authorization/              # attribute, requirement, handler, authorizer
+│           ├── Http/AuthenticatorHttpClientNames.cs
+│           └── Extensions/                 # AddAuthenticatorAuthorization
 ├── test/
-│   ├── SystemStandards.Core.Tests/         # Empty placeholder
-│   ├── SystemStandards.Validation.Tests/   # Empty placeholder
-│   └── SystemStandards.AspNetCore.Tests/   # Empty placeholder
+│   ├── SystemStandards.Core.Tests/
+│   ├── SystemStandards.Validation.Tests/
+│   ├── SystemStandards.AspNetCore.Tests/
+│   ├── SystemStandards.Abp.Tests/
+│   ├── SystemStandards.Authorization.Contracts.Tests/
+│   └── SystemStandards.Abp.Authorization.Tests/
 ├── nupkg/                                   # NuGet package output
 ├── SystemStandards.slnx                    # Solution file
 └── SystemStandards.sln.DotSettings.user    # Rider settings
@@ -203,9 +266,11 @@ public async Task<IResult<ProductDto>> Create([FromBody] CreateProductDto dto)
 
 ### Running Tests
 
-Test projects are empty; populate with xUnit or NUnit:
+Test projeleri xUnit + FluentAssertions kullanır; authorization testleri `TestServer` üzerinde
+gerçek bir HTTP hattı kurar ve uzak karar ucunu sahte bir primary handler ile karşılar.
 ```bash
 dotnet test test/SystemStandards.Core.Tests/
+dotnet test test/SystemStandards.Abp.Authorization.Tests/
 dotnet test --filter "ClassName.MethodName"
 ```
 
@@ -235,8 +300,10 @@ dotnet test --filter "ClassName.MethodName"
 
 ## Known TODOs
 
-- Test projeleri hala boş; kapsamlı test suite yazılmalı
+- `SystemStandards.AspNetCore.Tests` hala boş; WebApplicationFactory tabanlı HTTP testleri yazılmalı
 - `ValidationMessageProvider` için resource-based localization desteği (IStringLocalizer)
+- Authorization sarmalayıcısında sürüm anahtarlı karar önbelleği yok; her istek uzak çağrı yapıyor
+  (`contextVersion` yanıtta hazır, `IDistributedCache` ile eklenecek)
 
 ---
 

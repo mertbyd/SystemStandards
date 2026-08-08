@@ -12,10 +12,18 @@
   <Folder Name="/src/SystemStandards.Abp/">
     <Project Path="src/SystemStandards.Abp/SystemStandards.Abp/SystemStandards.Abp.csproj" />
   </Folder>
+  <Folder Name="/src/SystemStandards.Authorization.Contracts/">
+    <Project Path="src/SystemStandards.Authorization.Contracts/SystemStandards.Authorization.Contracts/SystemStandards.Authorization.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/SystemStandards.Abp.Authorization/">
+    <Project Path="src/SystemStandards.Abp.Authorization/SystemStandards.Abp.Authorization/SystemStandards.Abp.Authorization.csproj" />
+  </Folder>
   <Folder Name="/test/">
     <Project Path="test/SystemStandards.Core.Tests/SystemStandards.Core.Tests.csproj" />
     <Project Path="test/SystemStandards.AspNetCore.Tests/SystemStandards.AspNetCore.Tests.csproj" />
     <Project Path="test/SystemStandards.Validation.Tests/SystemStandards.Validation.Tests.csproj" />
     <Project Path="test/SystemStandards.Abp.Tests/SystemStandards.Abp.Tests.csproj" />
+    <Project Path="test/SystemStandards.Authorization.Contracts.Tests/SystemStandards.Authorization.Contracts.Tests.csproj" />
+    <Project Path="test/SystemStandards.Abp.Authorization.Tests/SystemStandards.Abp.Authorization.Tests.csproj" />
   </Folder>
 </Solution>
