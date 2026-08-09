@@ -11,10 +11,15 @@
     <Authors>Mert Bayd</Authors>
     <Description>Drop-in tenant / organization unit / application scope authorization for ABP projects. One DependsOn and one AddAuthenticatorAuthorization call wire a fail-closed authorization client over the Authenticator decision endpoint.</Description>
     <PackageTags>authorization;abp;aspnetcore;multitenancy;fail-closed</PackageTags>
-    <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
+    <RepositoryUrl>https://github.com/mertbyd/SystemStandards</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
