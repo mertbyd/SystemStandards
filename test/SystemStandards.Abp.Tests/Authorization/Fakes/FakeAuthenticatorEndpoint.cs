@@ -13,6 +13,7 @@ namespace SystemStandards.Abp.Authorization.Tests.Fakes;
 /// </summary>
 internal sealed class FakeAuthenticatorEndpoint : HttpMessageHandler
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
     private readonly Lock _sync = new();
     private readonly List<RecordedAuthorizationRequest> _requests = [];
 
@@ -90,10 +91,27 @@ internal sealed class FakeAuthenticatorEndpoint : HttpMessageHandler
             Content = new StringContent("<html>bu bir karar degil</html>", Encoding.UTF8, "application/json")
         };
 
+    /// <summary>SystemStandards Result olmayan paralel bir response zarfı üretir.</summary>
+    public static HttpResponseMessage NonStandardEnvelope()
+    {
+        var payload = JsonSerializer.Serialize(new
+        {
+            success = true,
+            data = new AuthorizationDecisionContract { IsAllowed = true }
+        });
+
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+    }
+
     // Karari, sunucunun tel uzerindeki Result<T> zarfina sarar.
     private static HttpResponseMessage Envelope(AuthorizationDecisionContract decision)
     {
-        var payload = JsonSerializer.Serialize(Result<AuthorizationDecisionContract>.Success(decision));
+        var payload = JsonSerializer.Serialize(
+            Result<AuthorizationDecisionContract>.Success(decision),
+            SerializerOptions);
 
         return new HttpResponseMessage(HttpStatusCode.OK)
         {

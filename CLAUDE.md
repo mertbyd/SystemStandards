@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Package Structure
 
-Suite dört pakete ayrılmıştır. Authorization sözleşmeleri mevcut Core paketinde,
-ABP istemcisi mevcut ABP paketinde yaşar; aynı sorumluluk için paralel paket üretilmez.
+Suite dört pakete ayrılmıştır. Authorization sözleşmeleri ve ABP istemcisi mevcut
+ABP paketinde yaşar; aynı sorumluluk için paralel paket üretilmez.
 
 1. **SystemStandards.Core** — Core Result types and status mapping
    - `IResult` interface: contract for all operation results
@@ -17,8 +17,6 @@ ABP istemcisi mevcut ABP paketinde yaşar; aynı sorumluluk için paralel paket 
    - `ResultStatus` enum: 11 status codes (Ok, Created, Invalid, NotFound, Unauthorized, Forbidden, Conflict, Error, CriticalError, Unavailable, NoContent)
    - `IResultStatusMapper`: maps `ResultStatus` → HTTP status code (200, 201, 400, 404, 401, 403, 409, 500, 503, 204)
    - `ValidationError` record: structured validation failure with Identifier, ErrorMessage, ErrorCode, Severity
-   - Authorization wire contracts: claim/header/path constants, request/decision contracts and stable failure codes
-   - `Result<T>` JSON round-trip desteği: istemci ve sunucu aynı sonucu doğrudan paylaşır
 
 2. **SystemStandards.Validation** — FluentValidation integration
    - Extensions for converting FluentValidation failures → `ValidationError` list
@@ -36,6 +34,7 @@ ABP istemcisi mevcut ABP paketinde yaşar; aynı sorumluluk için paralel paket 
    - `SystemStandardsAbpModule`: Core + AspNetCore + Validation kayıtlarını tek modülde toplar
    - `AbpExceptionToResultStatusResolver`: ABP exception türleri → `ResultStatus` (type referansı, string match yok)
    - `ResultBasedExceptionToErrorInfoConverter`, `AbpValidationMessageProvider`, `AbpOperationContextEnricher`
+   - Authorization wire contracts: claim/header/path constants, request/decision contracts and stable failure codes
    - Drop-in tenant / OU / application scope authorization: `AddAuthenticatorAuthorization(configuration)`
    - `RequireSelectedContextAttribute` → policy adı → `SelectedContextAuthorizationPolicyProvider`
      → `SelectedContextRequirement` → `SelectedContextAuthorizationHandler`
@@ -114,7 +113,6 @@ SystemStandards/
 │   │       │   └── ResultStatusMapper.cs
 │   │       ├── Options/
 │   │       │   └── ResultStatusMappingOptions.cs
-│   │       ├── Authorization/              # shared wire contracts
 │   │       └── Extensions/
 │   │           └── ServiceCollectionExtensions.cs
 │   ├── SystemStandards.Validation/
@@ -146,6 +144,7 @@ SystemStandards/
 │   │       ├── Identity/
 │   │       ├── Localization/
 │   │       ├── Wrappers/
+│   │       ├── AuthorizationContracts/     # shared wire contracts
 │   │       ├── Options/                    # AuthenticatorClientOptions + validator
 │   │       ├── Context/                    # selected-context accessor
 │   │       ├── Authorization/              # policy, requirement, handler, authorizer
