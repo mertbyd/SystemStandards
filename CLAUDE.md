@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Package Structure
 
-Suite altı pakete ayrılmıştır: dört paket Result pattern'ini, iki paket authorization
-sarmalayıcısını taşır.
+Suite dört pakete ayrılmıştır. Authorization sözleşmeleri mevcut Core paketinde,
+ABP istemcisi mevcut ABP paketinde yaşar; aynı sorumluluk için paralel paket üretilmez.
 
 1. **SystemStandards.Core** — Core Result types and status mapping
    - `IResult` interface: contract for all operation results
@@ -17,6 +17,8 @@ sarmalayıcısını taşır.
    - `ResultStatus` enum: 11 status codes (Ok, Created, Invalid, NotFound, Unauthorized, Forbidden, Conflict, Error, CriticalError, Unavailable, NoContent)
    - `IResultStatusMapper`: maps `ResultStatus` → HTTP status code (200, 201, 400, 404, 401, 403, 409, 500, 503, 204)
    - `ValidationError` record: structured validation failure with Identifier, ErrorMessage, ErrorCode, Severity
+   - Authorization wire contracts: claim/header/path constants, request/decision contracts and stable failure codes
+   - `Result<T>` JSON round-trip desteği: istemci ve sunucu aynı sonucu doğrudan paylaşır
 
 2. **SystemStandards.Validation** — FluentValidation integration
    - Extensions for converting FluentValidation failures → `ValidationError` list
@@ -34,16 +36,7 @@ sarmalayıcısını taşır.
    - `SystemStandardsAbpModule`: Core + AspNetCore + Validation kayıtlarını tek modülde toplar
    - `AbpExceptionToResultStatusResolver`: ABP exception türleri → `ResultStatus` (type referansı, string match yok)
    - `ResultBasedExceptionToErrorInfoConverter`, `AbpValidationMessageProvider`, `AbpOperationContextEnricher`
-
-5. **SystemStandards.Authorization.Contracts** — authorization wire contract, **bağımlılığı yok**
-   - `SelectedContextClaimNames`: `sub`, `client_id`, `scope`, `actor_kind`, `tenant_id`, `organization_unit_id`, `application_scope_id`
-   - `SelectedContextHeaderNames`: privileged reason + correlation id header'ları
-   - `AuthorizationRequestContract`, `AuthorizationDecisionContract`, `AuthorizationResultEnvelopeContract`
-   - `SelectedContextFailureCodes`: `Authenticator.SelectedContext:00001..00012` ve `Authenticator.AuthContext:00001..00010`
-   - `AuthenticatorEndpointPaths`: karar ucunun kararlı yolu
-
-6. **SystemStandards.Abp.Authorization** — drop-in tenant / OU / application scope authorization
-   - `SystemStandardsAbpAuthorizationModule` + `AddAuthenticatorAuthorization(configuration)`
+   - Drop-in tenant / OU / application scope authorization: `AddAuthenticatorAuthorization(configuration)`
    - `RequireSelectedContextAttribute` → policy adı → `SelectedContextAuthorizationPolicyProvider`
      → `SelectedContextRequirement` → `SelectedContextAuthorizationHandler`
    - Policy sağlayıcısı ABP'ninkinin **yerine geçmez, sarmalar**; hem `IAuthorizationPolicyProvider`
@@ -59,8 +52,10 @@ Token yok, claim eksik/bozuk, 5xx, timeout, DNS/bağlantı hatası, ayrıştır�
 problemlerinde uzak çağrı hiç yapılmaz. Kullanım:
 
 ```csharp
-[DependsOn(typeof(SystemStandardsAbpAuthorizationModule))]
+[DependsOn(typeof(SystemStandardsAbpModule))]
 public class MyModule : AbpModule { }
+
+context.Services.AddAuthenticatorAuthorization(configuration);
 
 [RequireSelectedContext(MyPermissions.Sources.Manage)]
 public async Task<Result<SpecSourceDto>> Update(...) { }
@@ -119,6 +114,7 @@ SystemStandards/
 │   │       │   └── ResultStatusMapper.cs
 │   │       ├── Options/
 │   │       │   └── ResultStatusMappingOptions.cs
+│   │       ├── Authorization/              # shared wire contracts
 │   │       └── Extensions/
 │   │           └── ServiceCollectionExtensions.cs
 │   ├── SystemStandards.Validation/
@@ -149,29 +145,17 @@ SystemStandards/
 │   │       ├── ExceptionHandling/
 │   │       ├── Identity/
 │   │       ├── Localization/
-│   │       └── Wrappers/
-│   ├── SystemStandards.Authorization.Contracts/
-│   │   └── SystemStandards.Authorization.Contracts/
-│   │       ├── Claims/SelectedContextClaimNames.cs
-│   │       ├── Headers/SelectedContextHeaderNames.cs
-│   │       ├── Endpoints/AuthenticatorEndpointPaths.cs
-│   │       ├── Contracts/                  # request / decision / result envelope
-│   │       └── FailureCodes/SelectedContextFailureCodes.cs
-│   └── SystemStandards.Abp.Authorization/
-│       └── SystemStandards.Abp.Authorization/
-│           ├── SystemStandardsAbpAuthorizationModule.cs
-│           ├── Options/                    # AuthenticatorClientOptions + validator
-│           ├── Context/                    # ISelectedContextAccessor + HttpContext impl
-│           ├── Authorization/              # attribute, policy provider, requirement, handler, authorizer
-│           ├── Http/AuthenticatorHttpClientNames.cs
-│           └── Extensions/                 # AddAuthenticatorAuthorization
+│   │       ├── Wrappers/
+│   │       ├── Options/                    # AuthenticatorClientOptions + validator
+│   │       ├── Context/                    # selected-context accessor
+│   │       ├── Authorization/              # policy, requirement, handler, authorizer
+│   │       ├── Http/AuthenticatorHttpClientNames.cs
+│   │       └── Extensions/                 # AddAuthenticatorAuthorization
 ├── test/
 │   ├── SystemStandards.Core.Tests/
 │   ├── SystemStandards.Validation.Tests/
 │   ├── SystemStandards.AspNetCore.Tests/
-│   ├── SystemStandards.Abp.Tests/
-│   ├── SystemStandards.Authorization.Contracts.Tests/
-│   └── SystemStandards.Abp.Authorization.Tests/
+│   └── SystemStandards.Abp.Tests/
 ├── nupkg/                                   # NuGet package output
 ├── SystemStandards.slnx                    # Solution file
 └── SystemStandards.sln.DotSettings.user    # Rider settings
@@ -274,7 +258,7 @@ Test projeleri xUnit + FluentAssertions kullanır; authorization testleri `TestS
 gerçek bir HTTP hattı kurar ve uzak karar ucunu sahte bir primary handler ile karşılar.
 ```bash
 dotnet test test/SystemStandards.Core.Tests/
-dotnet test test/SystemStandards.Abp.Authorization.Tests/
+dotnet test test/SystemStandards.Abp.Tests/
 dotnet test --filter "ClassName.MethodName"
 ```
 

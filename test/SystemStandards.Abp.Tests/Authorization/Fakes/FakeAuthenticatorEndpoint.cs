@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using SystemStandards.Authorization.Contracts.Contracts;
+using SystemStandards.Results;
 
 namespace SystemStandards.Abp.Authorization.Tests.Fakes;
 
@@ -92,14 +93,7 @@ internal sealed class FakeAuthenticatorEndpoint : HttpMessageHandler
     // Karari, sunucunun tel uzerindeki Result<T> zarfina sarar.
     private static HttpResponseMessage Envelope(AuthorizationDecisionContract decision)
     {
-        var payload = JsonSerializer.Serialize(new
-        {
-            value = decision,
-            isSuccess = true,
-            status = 0,
-            errors = Array.Empty<string>(),
-            validationErrors = Array.Empty<object>()
-        });
+        var payload = JsonSerializer.Serialize(Result<AuthorizationDecisionContract>.Success(decision));
 
         return new HttpResponseMessage(HttpStatusCode.OK)
         {
