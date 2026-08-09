@@ -9,6 +9,7 @@ using SystemStandards.Abp.Authorization.Options;
 using SystemStandards.Authorization.Contracts.Contracts;
 using SystemStandards.Authorization.Contracts.FailureCodes;
 using SystemStandards.Authorization.Contracts.Headers;
+using SystemStandards.Results;
 
 namespace SystemStandards.Abp.Authorization.Authorization;
 
@@ -20,7 +21,7 @@ namespace SystemStandards.Abp.Authorization.Authorization;
 /// </summary>
 public sealed class HttpSelectedContextAuthorizer : ISelectedContextAuthorizer
 {
-    // Yanit gövdesi camelCase gelir; buyuk/kucuk harf duyarsizligi zarf bicimi degisse de okumayi ayakta tutar.
+    // Sunucu ve istemci ayni Result<T> tipini kullanir; yalniz JSON adlandirma farklari toleranslidir.
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -101,12 +102,12 @@ public sealed class HttpSelectedContextAuthorizer : ISelectedContextAuthorizer
                 SelectedContextFailureCodes.SelectedContext.AuthorizationSourceUnavailable);
         }
 
-        var envelope = await response.Content.ReadFromJsonAsync<AuthorizationResultEnvelopeContract>(
+        var result = await response.Content.ReadFromJsonAsync<Result<AuthorizationDecisionContract>>(
             SerializerOptions,
             cancellationToken);
 
-        var decision = envelope?.Decision;
-        if (envelope is null || !envelope.IsSucceeded || decision is null)
+        var decision = result?.Value;
+        if (result is null || !result.IsSuccess || decision is null)
         {
             _logger.LogError(
                 "Authorization reddedildi: karar govdesi okunamadi. Operasyon: {OperationName}",
