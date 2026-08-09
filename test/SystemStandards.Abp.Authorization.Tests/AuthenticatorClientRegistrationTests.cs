@@ -8,6 +8,7 @@ using SystemStandards.Abp.Authorization.Context;
 using SystemStandards.Abp.Authorization.Extensions;
 using SystemStandards.Abp.Authorization.Options;
 using SystemStandards.Abp.Authorization.Tests.Fakes;
+using Volo.Abp.Authorization;
 using Xunit;
 
 namespace SystemStandards.Abp.Authorization.Tests;
@@ -60,6 +61,58 @@ public class AuthenticatorClientRegistrationTests
         provider.GetRequiredService<ISelectedContextAuthorizer>().Should().BeOfType<HttpSelectedContextAuthorizer>();
         provider.GetServices<IAuthorizationHandler>().Should().ContainItemsAssignableTo<SelectedContextAuthorizationHandler>();
         provider.GetRequiredService<IHttpClientFactory>().Should().NotBeNull();
+        provider.GetRequiredService<IAuthorizationPolicyProvider>()
+            .Should().BeOfType<SelectedContextAuthorizationPolicyProvider>();
+    }
+
+    /* ABP'nin policy saglayicisi yerine gecilmez, sarmalanir: tanimadigimiz her policy adi
+     * icteki saglayiciya iner. Bu test o sozlesmeyi ABP'nin kendi arayuzu uzerinden kilitler. */
+    [Fact]
+    public async Task An_existing_abp_policy_provider_is_wrapped_not_replaced()
+    {
+        var inner = new SpyAbpPolicyProvider();
+        var services = BuildServices();
+        services.AddSingleton<IAuthorizationPolicyProvider>(inner);
+        services.AddSingleton<IAbpAuthorizationPolicyProvider>(inner);
+
+        services.AddAuthenticatorAuthorization(BuildConfiguration());
+
+        using var provider = services.BuildServiceProvider();
+
+        var decorated = provider.GetRequiredService<IAbpAuthorizationPolicyProvider>();
+        decorated.Should().BeOfType<SelectedContextAuthorizationPolicyProvider>();
+
+        await decorated.GetPolicyAsync("Abp.Permission.Name");
+        (await decorated.GetPoliciesNamesAsync()).Should().Equal(SpyAbpPolicyProvider.KnownPolicyName);
+
+        inner.RequestedPolicyNames.Should().Equal("Abp.Permission.Name");
+    }
+
+    // ABP'nin saglayicisinin yerine gecen, cagrilari kaydeden test ikizi.
+    private sealed class SpyAbpPolicyProvider : IAbpAuthorizationPolicyProvider
+    {
+        public const string KnownPolicyName = "Abp.Permission.Name";
+
+        private readonly List<string> _requestedPolicyNames = [];
+
+        public IReadOnlyList<string> RequestedPolicyNames => _requestedPolicyNames;
+
+        public bool AllowsCachingPolicies => false;
+
+        public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
+            => Task.FromResult(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
+        public Task<AuthorizationPolicy?> GetFallbackPolicyAsync()
+            => Task.FromResult<AuthorizationPolicy?>(null);
+
+        public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+        {
+            _requestedPolicyNames.Add(policyName);
+
+            return Task.FromResult<AuthorizationPolicy?>(null);
+        }
+
+        public Task<List<string>> GetPoliciesNamesAsync() => Task.FromResult(new List<string> {KnownPolicyName});
     }
 
     // Modul ve elle cagri ayni container'da bulusursa ikinci kayit yapilmaz.

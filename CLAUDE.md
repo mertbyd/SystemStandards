@@ -44,7 +44,11 @@ sarmalayıcısını taşır.
 
 6. **SystemStandards.Abp.Authorization** — drop-in tenant / OU / application scope authorization
    - `SystemStandardsAbpAuthorizationModule` + `AddAuthenticatorAuthorization(configuration)`
-   - `RequireSelectedContextAttribute` → `SelectedContextRequirement` → `SelectedContextAuthorizationHandler`
+   - `RequireSelectedContextAttribute` → policy adı → `SelectedContextAuthorizationPolicyProvider`
+     → `SelectedContextRequirement` → `SelectedContextAuthorizationHandler`
+   - Policy sağlayıcısı ABP'ninkinin **yerine geçmez, sarmalar**; hem `IAuthorizationPolicyProvider`
+     hem `IAbpAuthorizationPolicyProvider` sarmalanır — controller yolu ilkini, ABP'nin application
+     service interceptor'ı ikincisini kullanır
    - `ISelectedContextAccessor` (claim'leri typed okur) + `ISelectedContextAuthorizer` (uzak karar)
    - `AuthenticatorClientOptions`: `IOptions<T>` + `ValidateOnStart`; eksik `BaseUrl` uygulamayı ayağa kaldırmaz
 
@@ -158,7 +162,7 @@ SystemStandards/
 │           ├── SystemStandardsAbpAuthorizationModule.cs
 │           ├── Options/                    # AuthenticatorClientOptions + validator
 │           ├── Context/                    # ISelectedContextAccessor + HttpContext impl
-│           ├── Authorization/              # attribute, requirement, handler, authorizer
+│           ├── Authorization/              # attribute, policy provider, requirement, handler, authorizer
 │           ├── Http/AuthenticatorHttpClientNames.cs
 │           └── Extensions/                 # AddAuthenticatorAuthorization
 ├── test/

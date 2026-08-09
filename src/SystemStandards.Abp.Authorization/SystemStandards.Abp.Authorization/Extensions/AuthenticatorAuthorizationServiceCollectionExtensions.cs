@@ -9,6 +9,7 @@ using SystemStandards.Abp.Authorization.Authorization;
 using SystemStandards.Abp.Authorization.Context;
 using SystemStandards.Abp.Authorization.Http;
 using SystemStandards.Abp.Authorization.Options;
+using Volo.Abp.Authorization;
 
 namespace SystemStandards.Abp.Authorization.Extensions;
 
@@ -51,6 +52,8 @@ public static class AuthenticatorAuthorizationServiceCollectionExtensions
         // kayitlari uygulamanin (ya da ABP'nin) kendi isidir.
         services.AddAuthorizationCore();
 
+        DecoratePolicyProviders(services);
+
         AddDecisionClient(services);
 
         services.TryAddScoped<ISelectedContextAccessor, HttpContextSelectedContextAccessor>();
@@ -58,6 +61,58 @@ public static class AuthenticatorAuthorizationServiceCollectionExtensions
         services.AddScoped<IAuthorizationHandler, SelectedContextAuthorizationHandler>();
 
         return services;
+    }
+
+    /* Policy saglayicilarini sarmalar. Iki kayit birden sarmalanir: ASP.NET Core middleware'i
+     * IAuthorizationPolicyProvider, ABP'nin method invocation authorization'i ise
+     * IAbpAuthorizationPolicyProvider uzerinden policy cozer. Yalniz biri sarmalanirsa
+     * attribute diger yolda sessizce etkisiz kalir. */
+    private static void DecoratePolicyProviders(IServiceCollection services)
+    {
+        DecoratePolicyProvider(services, typeof(IAuthorizationPolicyProvider));
+        DecoratePolicyProvider(services, typeof(IAbpAuthorizationPolicyProvider));
+    }
+
+    // Verilen servis tipinin son kaydini decorator ile degistirir; kayit yoksa bir sey yapmaz.
+    private static void DecoratePolicyProvider(IServiceCollection services, Type serviceType)
+    {
+        var descriptor = services.LastOrDefault(item => item.ServiceType == serviceType);
+        if (descriptor is null)
+        {
+            return;
+        }
+
+        if (descriptor.ImplementationType == typeof(SelectedContextAuthorizationPolicyProvider))
+        {
+            return;
+        }
+
+        services.Remove(descriptor);
+        services.Add(ServiceDescriptor.Describe(
+            serviceType,
+            serviceProvider => new SelectedContextAuthorizationPolicyProvider(
+                ResolveInnerProvider(serviceProvider, descriptor)),
+            descriptor.Lifetime));
+    }
+
+    // Sarmalanan kaydin ornegini, kaydin kendi kurulum bicimine sadik kalarak uretir.
+    private static IAuthorizationPolicyProvider ResolveInnerProvider(
+        IServiceProvider serviceProvider,
+        ServiceDescriptor descriptor)
+    {
+        if (descriptor.ImplementationInstance is IAuthorizationPolicyProvider instance)
+        {
+            return instance;
+        }
+
+        if (descriptor.ImplementationFactory is not null)
+        {
+            return (IAuthorizationPolicyProvider)descriptor.ImplementationFactory(serviceProvider);
+        }
+
+        return (IAuthorizationPolicyProvider)ActivatorUtilities.CreateInstance(
+            serviceProvider,
+            descriptor.ImplementationType!);
     }
 
     // Karar ucunu tuketen named client'i kurar; dayaniklilik standart handler'a birakilir.
