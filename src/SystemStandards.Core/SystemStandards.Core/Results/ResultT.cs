@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace SystemStandards.Results;
 
 /// <summary>
@@ -9,31 +7,6 @@ namespace SystemStandards.Results;
 /// </summary>
 public class Result<T> : Result
 {
-    /// <summary>Factory metotlari ve serializer'lar icin bos sonuc olusturur.</summary>
-    public Result()
-    {
-    }
-
-    /// <summary>Tel uzerindeki SystemStandards sonucunu kayipsiz yeniden kurar.</summary>
-    [JsonConstructor]
-    public Result(
-        ResultStatus status,
-        IReadOnlyList<string>? errors,
-        IReadOnlyList<ValidationError>? validationErrors,
-        string? successMessage,
-        string? correlationId,
-        string? location,
-        T? value)
-    {
-        Status = status;
-        Errors = errors ?? Array.Empty<string>();
-        ValidationErrors = validationErrors ?? Array.Empty<ValidationError>();
-        SuccessMessage = successMessage;
-        CorrelationId = correlationId;
-        Location = location;
-        Value = value;
-    }
-
     /// <summary>Döndürülen veri (başarı durumunda)</summary>
     public T? Value { get; protected set; }
 

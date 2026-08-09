@@ -21,11 +21,14 @@ namespace SystemStandards.Abp.Authorization.Authorization;
 /// </summary>
 public sealed class HttpSelectedContextAuthorizer : ISelectedContextAuthorizer
 {
-    // Sunucu ve istemci ayni Result<T> tipini kullanir; yalniz JSON adlandirma farklari toleranslidir.
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
+    // Sunucu ve istemci ayni Result<T> tel bicimini kullanir; ikinci bir response DTO tanimlanmaz.
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    private static readonly string ResultSuccessPropertyName =
+        JsonNamingPolicy.CamelCase.ConvertName(nameof(Result.IsSuccess));
+    private static readonly string ResultStatusPropertyName =
+        JsonNamingPolicy.CamelCase.ConvertName(nameof(Result.Status));
+    private static readonly string ResultValuePropertyName =
+        JsonNamingPolicy.CamelCase.ConvertName(nameof(Result<AuthorizationDecisionContract>.Value));
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ISelectedContextAccessor _selectedContextAccessor;
@@ -102,9 +105,7 @@ public sealed class HttpSelectedContextAuthorizer : ISelectedContextAuthorizer
                 SelectedContextFailureCodes.SelectedContext.AuthorizationSourceUnavailable);
         }
 
-        var result = await response.Content.ReadFromJsonAsync<Result<AuthorizationDecisionContract>>(
-            SerializerOptions,
-            cancellationToken);
+        var result = await ReadDecisionResultAsync(response.Content, cancellationToken);
 
         var decision = result?.Value;
         if (result is null || !result.IsSuccess || decision is null)
@@ -131,6 +132,48 @@ public sealed class HttpSelectedContextAuthorizer : ISelectedContextAuthorizer
         }
 
         return SelectedContextDecision.FromContract(decision);
+    }
+
+    // Result<T> tel bicimini dogrudan okur; zarf gecersizse karar uretmez.
+    private static async Task<Result<AuthorizationDecisionContract>?> ReadDecisionResultAsync(
+        HttpContent content,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        var root = document.RootElement;
+
+        if (!TryGetProperty(root, ResultSuccessPropertyName, out var success)
+            || success.ValueKind != JsonValueKind.True
+            || !TryGetProperty(root, ResultStatusPropertyName, out var status)
+            || status.Deserialize<ResultStatus>(SerializerOptions) != ResultStatus.Ok
+            || !TryGetProperty(root, ResultValuePropertyName, out var value))
+        {
+            return null;
+        }
+
+        var decision = value.Deserialize<AuthorizationDecisionContract>(SerializerOptions);
+        return decision is null
+            ? null
+            : Result<AuthorizationDecisionContract>.Success(decision);
+    }
+
+    // JSON adlandirma politikasindan bagimsiz olarak Result property adini bulur.
+    private static bool TryGetProperty(JsonElement root, string propertyName, out JsonElement value)
+    {
+        foreach (var property in root.EnumerateObject())
+        {
+            if (!string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            value = property.Value;
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 
     // Cagiranin bearer token'ini ve privileged header'larini uzak istege tasir.
