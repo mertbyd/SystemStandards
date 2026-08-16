@@ -1,9 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SystemStandards.Abp.ExceptionHandling;
 using SystemStandards.Abp.Localization;
 using SystemStandards.Localization;
 using SystemStandards.Mapping;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.ExceptionHandling;
 using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
@@ -48,24 +50,13 @@ public class SystemStandardsAbpModule : AbpModule
         services.AddSingleton<IExceptionToResultStatusResolver>(sp =>
             sp.GetRequiredService<AbpExceptionToResultStatusResolver>());
 
-        // B2 fix: Hardcoded dictionary yerine IStringLocalizer kullanan provider
+        // B2 fix: Hardcoded dictionary yerine IStringLocalizer kullanan provider.
         services.AddScoped<IValidationMessageProvider, AbpValidationMessageProvider>();
 
-        // ResultBasedExceptionToErrorInfoConverter
-        services.AddSingleton<ResultBasedExceptionToErrorInfoConverter>();
+        // ABP default converter validasyon detaylarini uretir; SystemStandards converter eksik ust seviye code alanini tamamlar.
+        services.TryAddTransient<DefaultExceptionToErrorInfoConverter>();
+        services.Replace(ServiceDescriptor.Transient<IExceptionToErrorInfoConverter, ResultBasedExceptionToErrorInfoConverter>());
 
-        // CRITICAL (Faz 3 & 4): ABP'nin kendi AbpExceptionFilter'ını kapatıyoruz ki,
-        // Exception'ları bizim yazdığımız ProblemDetailsMiddleware (RFC 7807) yakalasın.
-        Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
-        {
-            var filter = options.Filters.FirstOrDefault(x => 
-                (x as Microsoft.AspNetCore.Mvc.ServiceFilterAttribute)?.ServiceType?.Name == "AbpExceptionFilter" ||
-                (x as Microsoft.AspNetCore.Mvc.TypeFilterAttribute)?.ImplementationType?.Name == "AbpExceptionFilter");
-            
-            if (filter != null)
-            {
-                options.Filters.Remove(filter);
-            }
-        });
+        // ABP'nin exception boundary'si korunur; bu paket yalnizca converter'i SystemStandards kodlariyla zenginlestirir.
     }
 }

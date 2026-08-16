@@ -1,36 +1,59 @@
 namespace SystemStandards.Abp.ExceptionHandling;
 
+using SystemStandards.Mapping;
 using SystemStandards.Results;
+using Volo.Abp.AspNetCore.ExceptionHandling;
 using Volo.Abp.Http;
-using Volo.Abp.Http.Modeling;
 
 /// <summary>
-/// SystemStandards Result hata formatını ABP'nin RemoteServiceErrorInfo contract'ına çeviren converter.
-/// ABP Angular/Blazor/MAUI frontend'leri bu yapıyı parse ettiğinden uyumluluk kritik.
+/// ABP'nin ürettiği RemoteServiceErrorInfo çıktısını SystemStandards ResultStatus kodlarıyla zenginleştirir.
 /// </summary>
-public class ResultBasedExceptionToErrorInfoConverter
+public class ResultBasedExceptionToErrorInfoConverter : IExceptionToErrorInfoConverter
 {
+    private readonly DefaultExceptionToErrorInfoConverter _defaultConverter;
+    private readonly IExceptionToResultStatusResolver _statusResolver;
+
     /// <summary>
-    /// Result Status'unu RemoteServiceErrorInfo'ya çevirir.
+    /// Default ABP converter korunur; SystemStandards sadece eksik üst seviye kodu tamamlar.
     /// </summary>
-    public RemoteServiceErrorInfo Convert(ResultStatus status, string? message, string? details = null)
+    public ResultBasedExceptionToErrorInfoConverter(
+        DefaultExceptionToErrorInfoConverter defaultConverter,
+        IExceptionToResultStatusResolver statusResolver)
     {
-        return new RemoteServiceErrorInfo
-        {
-            Code = status.ToString().ToUpperInvariant(),
-            Message = message ?? GetDefaultMessage(status),
-            Details = details
-        };
+        _defaultConverter = defaultConverter;
+        _statusResolver = statusResolver;
     }
 
-    private static string GetDefaultMessage(ResultStatus status) => status switch
+    /// <summary>
+    /// Exception nesnesini ABP'nin standart hata sözleşmesine çevirir.
+    /// </summary>
+    public RemoteServiceErrorInfo Convert(Exception exception, bool includeSensitiveDetails)
     {
-        ResultStatus.NotFound => "Kaynak bulunamadı",
-        ResultStatus.Forbidden => "Erişim yasaklı",
-        ResultStatus.Unauthorized => "Lütfen oturum açın",
-        ResultStatus.Invalid => "Doğrulama hatası",
-        ResultStatus.Conflict => "Kaynak çakışması",
-        ResultStatus.Unavailable => "Servis geçici olarak kullanılamaz",
-        _ => "Bir hata oluştu"
-    };
+        var errorInfo = _defaultConverter.Convert(exception, includeSensitiveDetails);
+        EnsureResultStatusCode(exception, errorInfo);
+        return errorInfo;
+    }
+
+    /// <summary>
+    /// Exception nesnesini ek ABP seçenekleriyle standart hata sözleşmesine çevirir.
+    /// </summary>
+    public RemoteServiceErrorInfo Convert(Exception exception, Action<AbpExceptionHandlingOptions>? options = null)
+    {
+        var errorInfo = _defaultConverter.Convert(exception, options);
+        EnsureResultStatusCode(exception, errorInfo);
+        return errorInfo;
+    }
+
+    private void EnsureResultStatusCode(Exception exception, RemoteServiceErrorInfo errorInfo)
+    {
+        if (!string.IsNullOrWhiteSpace(errorInfo.Code))
+        {
+            return;
+        }
+
+        errorInfo.Code = _statusResolver
+            .Resolve(exception)
+            .ToString()
+            .ToUpperInvariant();
+    }
 }
