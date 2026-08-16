@@ -7,14 +7,19 @@
     <LangVersion>latest</LangVersion>
     <PackageId>SystemStandards.Abp</PackageId>
     <Title>System Standards - ABP Framework Integration</Title>
-    <Version>2.0.3</Version>
+    <Version>2.1.0</Version>
     <Authors>Mert Bayd</Authors>
     <Description>ABP Framework integration for SystemStandards Result pattern. Exception mapping, ABP module, ICurrentUser enrichment, localization via IStringLocalizer.</Description>
     <PackageTags>result;ardalis;abp;aspnetcore;validation</PackageTags>
     <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- ABP Framework packages -->
