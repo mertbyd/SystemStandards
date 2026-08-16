@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <PackageId>SystemStandards.Abp</PackageId>
     <Title>System Standards - ABP Framework Integration</Title>
-    <Version>2.0.0</Version>
+    <Version>2.0.3</Version>
     <Authors>Mert Bayd</Authors>
     <Description>ABP Framework integration for SystemStandards Result pattern. Exception mapping, ABP module, ICurrentUser enrichment, localization via IStringLocalizer.</Description>
     <PackageTags>result;ardalis;abp;aspnetcore;validation</PackageTags>
