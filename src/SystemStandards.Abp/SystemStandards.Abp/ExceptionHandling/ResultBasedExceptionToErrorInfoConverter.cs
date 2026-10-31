@@ -1,6 +1,7 @@
 namespace SystemStandards.Abp.ExceptionHandling;
 
 using SystemStandards.Mapping;
+using SystemStandards.Results;
 using Volo.Abp.AspNetCore.ExceptionHandling;
 using Volo.Abp.Http;
 
@@ -12,7 +13,9 @@ public class ResultBasedExceptionToErrorInfoConverter : IExceptionToErrorInfoCon
     private readonly DefaultExceptionToErrorInfoConverter _defaultConverter;
     private readonly IExceptionToResultStatusResolver _statusResolver;
 
-    /// <summary>Default ABP converter korunur; SystemStandards yalnız eksik üst seviye kodu tamamlar.</summary>
+    /// <summary>
+    /// Default ABP converter korunur; SystemStandards sadece eksik üst seviye kodu tamamlar.
+    /// </summary>
     public ResultBasedExceptionToErrorInfoConverter(
         DefaultExceptionToErrorInfoConverter defaultConverter,
         IExceptionToResultStatusResolver statusResolver)
@@ -21,7 +24,9 @@ public class ResultBasedExceptionToErrorInfoConverter : IExceptionToErrorInfoCon
         _statusResolver = statusResolver;
     }
 
-    /// <summary>Exception nesnesini ABP'nin standart hata sözleşmesine çevirir.</summary>
+    /// <summary>
+    /// Exception nesnesini ABP'nin standart hata sözleşmesine çevirir.
+    /// </summary>
     public RemoteServiceErrorInfo Convert(Exception exception, bool includeSensitiveDetails)
     {
         var errorInfo = _defaultConverter.Convert(exception, includeSensitiveDetails);
@@ -29,7 +34,9 @@ public class ResultBasedExceptionToErrorInfoConverter : IExceptionToErrorInfoCon
         return errorInfo;
     }
 
-    /// <summary>Exception nesnesini ek ABP seçenekleriyle standart hata sözleşmesine çevirir.</summary>
+    /// <summary>
+    /// Exception nesnesini ek ABP seçenekleriyle standart hata sözleşmesine çevirir.
+    /// </summary>
     public RemoteServiceErrorInfo Convert(Exception exception, Action<AbpExceptionHandlingOptions>? options = null)
     {
         var errorInfo = _defaultConverter.Convert(exception, options);
@@ -37,7 +44,6 @@ public class ResultBasedExceptionToErrorInfoConverter : IExceptionToErrorInfoCon
         return errorInfo;
     }
 
-    // ABP kod üretmediyse SystemStandards durum kodunu üst seviye hata kodu yapar.
     private void EnsureResultStatusCode(Exception exception, RemoteServiceErrorInfo errorInfo)
     {
         if (!string.IsNullOrWhiteSpace(errorInfo.Code))

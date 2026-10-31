@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "feed": "artifacts/local-feed",
+  "families": [
+    {
+      "name": "SystemStandards",
+      "displayName": "System Standards",
+      "root": ".",
+      "solution": "SystemStandards.slnx",
+      "version": "2.1.0",
+      "immutableVersions": ["1.0.0", "2.0.0", "2.0.1", "2.0.2"],
+      "keyName": "systemstandards-push",
+      "packageGlob": "SystemStandards.*",
+      "owner": "mertbyd",
+      "hasSymbols": false,
+      "packages": [
+        {
+          "id": "SystemStandards.Core",
+          "project": "src/SystemStandards.Core/SystemStandards.Core/SystemStandards.Core.csproj"
+        },
+        {
+          "id": "SystemStandards.Validation",
+          "project": "src/SystemStandards.Validation/SystemStandards.Validation/SystemStandards.Validation.csproj",
+          "requiredDependencies": [
+            { "id": "SystemStandards.Core", "versionContains": "2.1.0" }
+          ]
+        },
+        {
+          "id": "SystemStandards.AspNetCore",
+          "project": "src/SystemStandards.AspNetCore/SystemStandards.AspNetCore/SystemStandards.AspNetCore.csproj",
+          "requiredDependencies": [
+            { "id": "SystemStandards.Core", "versionContains": "2.1.0" }
+          ]
+        },
+        {
+          "id": "SystemStandards.Authorization.Contracts",
+          "project": "src/SystemStandards.Authorization.Contracts/SystemStandards.Authorization.Contracts/SystemStandards.Authorization.Contracts.csproj"
+        },
+        {
+          "id": "SystemStandards.Abp",
+          "project": "src/SystemStandards.Abp/SystemStandards.Abp/SystemStandards.Abp.csproj",
+          "requiredDependencies": [
+            { "id": "SystemStandards.AspNetCore", "versionContains": "2.1.0" },
+            { "id": "SystemStandards.Validation", "versionContains": "2.1.0" }
+          ]
+        },
+        {
+          "id": "SystemStandards.Abp.Authorization",
+          "project": "src/SystemStandards.Abp.Authorization/SystemStandards.Abp.Authorization/SystemStandards.Abp.Authorization.csproj",
+          "requiredDependencies": [
+            { "id": "SystemStandards.Abp", "versionContains": "2.1.0" },
+            { "id": "SystemStandards.Authorization.Contracts", "versionContains": "2.1.0" }
+          ]
+        }
+      ]
+    }
+  ]
+}

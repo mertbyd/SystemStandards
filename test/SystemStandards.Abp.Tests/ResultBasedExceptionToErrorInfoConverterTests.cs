@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using SystemStandards.Abp.ExceptionHandling;
 using SystemStandards.Mapping;
@@ -14,10 +15,11 @@ using Xunit;
 
 namespace SystemStandards.Abp.Tests;
 
-/// <summary>ResultBasedExceptionToErrorInfoConverter için birim testleri.</summary>
+/// <summary>
+/// ResultBasedExceptionToErrorInfoConverter icin birim testleri.
+/// </summary>
 public class ResultBasedExceptionToErrorInfoConverterTests
 {
-    /// <summary>ABP boş bıraktığında ResultStatus kodunu korur.</summary>
     [Fact]
     public void Convert_Should_Set_ResultStatus_Code_When_Abp_Leaves_Code_Empty()
     {
@@ -44,7 +46,6 @@ public class ResultBasedExceptionToErrorInfoConverterTests
         errorInfo.ValidationErrors[0].Members.Should().ContainSingle("name");
     }
 
-    // ABP'nin gerçek default converter bağımlılıklarını test container'ında kurar.
     private static DefaultExceptionToErrorInfoConverter CreateDefaultConverter()
     {
         var services = new ServiceCollection();

@@ -7,14 +7,19 @@
     <LangVersion>latest</LangVersion>
     <PackageId>SystemStandards.Validation</PackageId>
     <Title>System Standards - Validation Extensions</Title>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Mert Bayd</Authors>
     <Description>FluentValidation integration for the SystemStandards Result pattern. Localized validation messages via IValidationMessageProvider.</Description>
     <PackageTags>result;ardalis;abp;aspnetcore;validation;fluentvalidation</PackageTags>
     <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- FluentValidation -->

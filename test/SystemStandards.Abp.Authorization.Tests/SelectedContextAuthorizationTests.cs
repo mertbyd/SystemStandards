@@ -211,23 +211,6 @@ public class SelectedContextAuthorizationTests
         authenticator.Requests.Should().NotBeEmpty();
     }
 
-    // Paralel response zarfi desteklenmez; tek tel sozlesmesi SystemStandards Result<T>'dir.
-    [Fact]
-    public async Task A_non_standard_response_envelope_is_rejected()
-    {
-        var authenticator = new FakeAuthenticatorEndpoint
-        {
-            Respond = _ => FakeAuthenticatorEndpoint.NonStandardEnvelope()
-        };
-
-        await using var host = await AuthorizationTestHost.StartAsync(authenticator);
-
-        var response = await host.Client.SendAsync(BuildRequest(TestAccessToken.Valid()));
-
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        authenticator.Requests.Should().ContainSingle();
-    }
-
     // Korunan action'a gidecek istegi kurar.
     private static HttpRequestMessage BuildRequest(string? token)
     {

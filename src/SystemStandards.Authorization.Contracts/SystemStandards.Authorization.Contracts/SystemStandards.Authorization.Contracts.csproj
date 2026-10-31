@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PackageId>SystemStandards.Authorization.Contracts</PackageId>
+    <Title>System Standards - Authorization Contracts</Title>
+    <Version>2.1.0</Version>
+    <Authors>Mert Bayd</Authors>
+    <Description>Authenticator authorization wire contract: claim names, request headers, decision payload and stable failure codes. Dependency-free; shared by the client wrapper and the authorization server.</Description>
+    <PackageTags>authorization;contracts;claims;multitenancy;abp</PackageTags>
+    <RepositoryUrl>https://github.com/mertbayd/SystemStandards</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!--
+    Bu paketin bilinçli olarak HİÇBİR bağımlılığı yoktur.
+    İstemci ile sunucunun paylaştığı tek gerçek burada durur; bir tarafın
+    framework seçimi diğerine sızmasın diye PackageReference eklenmez.
+  -->
+
+</Project>

@@ -7,4 +7,5 @@
 *.suo
 nupkg/
 nupkgs/
+artifacts/
 **/appsettings.secrets.json
